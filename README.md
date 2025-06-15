@@ -6,6 +6,9 @@ this repo contains some scattered notes and code about my findings
 - hello.c is for running ptx code
 - mice.c for now is just a hexdump and SASS viewer with vim motion controls (hjkl - also ctrl+hjkl to go faster)
 - ptx_gen.py generates a bunch of different ptx to assemble into SASS to analyze
+- generated.cubin is the cubin resulting from running ptx_gen and ptxas
+
+Each of the above (except generated.cubin) have shell commands to compile/run/inspect at the top of the file.
 
 I eventually want to make mice.c aka Machine Instruction Code Editor into a code editor that works directly on machine code (x64, sass, arm64, arm32, riscv64).
 It would make various visuals directly from machine code and allow for editing in either of the visualizations with controls that match the visual.
