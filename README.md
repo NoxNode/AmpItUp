@@ -16,6 +16,22 @@ We'll see if that ever comes to fruition.
 
 below stuff are also in the [Handmade Network Project blog](https://handmade.network/p/691/ampitup/blog)
 
+## Wrap Up / Conclusion
+
+My main goal for this project was to understand my GPU's machine code (SASS) better and I accomplished that. I did want to have more of a functioning disassembler and editor for the SASS code - right now I'm just disassembling the IADD3 instruction. I'll still be working on that viewer/editor so if anyone's interested in that stay tuned. Here's a screenshot of the current state of the viewer/editor:
+![Screenshot 2025-06-15 143418.png](https://assets.media.handmade.network/7402fa72-10ad-4a6f-b934-337684e0f606/Screenshot_2025-06-15_143418.png)
+The numbers next to the IADD3 instructions are in order:
+- destination register
+- 1st source register (optionally negated/inverted)
+- 2nd source register (optionally negated/inverted)
+- 3rd source register (optionally negated/inverted)
+- first carry out predicate
+- first carry in predicate (optionally negated)
+- second carry out predicate
+- second carry in predicate (optionally negated)
+
+all of these use negated True (!P7) for the second carry in, but P0 aka False aka 0 should work as well - still have to test to make sure that what's going on here is 2 carry ins and outs
+
 ## IADD3 Binary Encoding Breakdown
 
 I've got most of the bits of the IADD3 instruction figured out, there's still a couple things I don't know and can't find an answer to.
