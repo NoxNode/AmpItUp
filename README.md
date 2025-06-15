@@ -14,23 +14,37 @@ I eventually want to make mice.c aka Machine Instruction Code Editor into a code
 It would make various visuals directly from machine code and allow for editing in either of the visualizations with controls that match the visual.
 We'll see if that ever comes to fruition.
 
-below stuff are also in the [Handmade Network Project blog](https://handmade.network/p/691/ampitup/blog)
+below stuff are also in the [Handmade Network Project blog](https://handmade.network/p/691/ampitup/blog) in chronological order
 
-## Wrap Up / Conclusion
+## link dump
+- [website with SM90a ISA         ]( https://kuterdinel.com/nv_isa/ )
+- [SASS control code viewer       ]( https://kuterdinel.com/nvidia-sass-control-code-viewer.html )
+- [SASS control code explanation  ]( https://github.com/NervanaSystems/maxas/wiki/Control-Codes )
+- [Turning/Ampere assembler       ]( https://github.com/daadaada/turingas/tree/master )
+- [Volta architecture pdf         ]( https://arxiv.org/pdf/1804.06826 )
+- [Ampere architecture pdf        ]( https://arxiv.org/pdf/2208.11174 )
+- [Ampere architecture talk       ]( https://www.nvidia.com/en-us/on-demand/session/gtcspring21-s33322/ )
+- [above link pdf (no signin req) ]( https://cfvod.kaltura.com/api_v3/index.php/service/attachment_attachmentAsset/action/serve/attachmentAssetId/1_ezjj6bp9/ks/djJ8MjkzNTc3MXzsRYu5cyOvZOPrEK0zuiSWMgkhZRcJ8ZojnzQVpbbToju32ezHgp_cvJof00nEyQtYn_RtY3cHjAEAorx2_fKdnalKRg112fj0a6jK53tZhB-Gn1VtTpt7sPj-iRSoSUNDjcpWwaaRrodrgfxAR2dUOT9gmEUFvq0Hx2ECrYhFCT6vwGmRMvN4nUjWX2OBp74EkAxM8worwHEaqsQCi-zl )
+- [PTX ISA                        ]( https://docs.nvidia.com/cuda/parallel-thread-execution/ )
+- [pdf with Volta encoding info   ]( https://www.cse.ust.hk/~weiwa/papers/yan-ppopp20.pdf )
+- [DocumentSASS (nvdisasm strings)]( https://github.com/0xD0GF00D/DocumentSASS )
+- [the Martins of nvidia forums   ]( https://forums.developer.nvidia.com/u/njuffa/summary )
+- [Casey's Cuda/Tensor Core video ]( https://www.youtube.com/watch?v=uBtuMsAY7J8 )
 
-My main goal for this project was to understand my GPU's machine code (SASS) better and I accomplished that. I did want to have more of a functioning disassembler and editor for the SASS code - right now I'm just disassembling the IADD3 instruction. I'll still be working on that viewer/editor so if anyone's interested in that stay tuned. Here's a screenshot of the current state of the viewer/editor:
-![Screenshot 2025-06-15 143418.png](https://assets.media.handmade.network/7402fa72-10ad-4a6f-b934-337684e0f606/Screenshot_2025-06-15_143418.png)
-The numbers next to the IADD3 instructions are in order:
-- destination register
-- 1st source register (optionally negated/inverted)
-- 2nd source register (optionally negated/inverted)
-- 3rd source register (optionally negated/inverted)
-- first carry out predicate
-- first carry in predicate (optionally negated)
-- second carry out predicate
-- second carry in predicate (optionally negated)
+## Some guesses on what the default control bits are and why
 
-all of these use negated True (!P7) for the second carry in, but P0 aka False aka 0 should work as well - still have to test to make sure that what's going on here is 2 carry ins and outs
+the default control bits output by ptxas on some random ptx I made seem to be 0x003fde (why I think this is default is in the table below):
+
+```
+| field               | #bits | val | why I think this is default |
+| --------------------------------------------------------------- |
+| reuse               |   4   |  0  | can still reuse regs, we just dont give the hint to the processor that we ARE reusing it |
+| wait barrier mask   |   6   |  3  | probably could also be 0 since the barriers for all prev instructions are 7 aka unset) |
+| read barrier index  |   3   |  7  | unset/not making a barrier  |
+| write barrier index |   3   |  7  | unset/not making a barrier  |
+| yield flag          |   1   |  0  | dont yield (in combination with a high stall this seems to kinda say "take as long as it takes")
+| stall cycles        |   4   |  F  | take as long as it takes    |
+```
 
 ## IADD3 Binary Encoding Breakdown
 
@@ -85,36 +99,20 @@ BITS_8_124_122_109_105_opex=TABLES_opex_3(batch_t,usched_info,reuse_src_a,reuse_
 ```
 [also here's a more in depth explanation of what the control bits mean]( https://github.com/NervanaSystems/maxas/wiki/Control-Codes )
 
+## Wrap Up / Conclusion
 
+My main goal for this project was to understand my GPU's machine code (SASS) better and I accomplished that. I did want to have more of a functioning disassembler and editor for the SASS code - right now I'm just disassembling the IADD3 instruction. I'll still be working on that viewer/editor so if anyone's interested in that stay tuned. Here's a screenshot of the current state of the viewer/editor:
+![Screenshot 2025-06-15 143418.png](https://assets.media.handmade.network/7402fa72-10ad-4a6f-b934-337684e0f606/Screenshot_2025-06-15_143418.png)
 
-## Some guesses on what the default control bits are and why
+The numbers next to the IADD3 instructions are in order:
+- destination register
+- 1st source register (optionally negated/inverted)
+- 2nd source register (optionally negated/inverted)
+- 3rd source register (optionally negated/inverted)
+- first carry out predicate
+- first carry in predicate (optionally negated)
+- second carry out predicate
+- second carry in predicate (optionally negated)
 
-the default control bits output by ptxas on some random ptx I made seem to be 0x003fde (why I think this is default is in the table below):
-
-```
-| field               | #bits | val | why I think this is default |
-| --------------------------------------------------------------- |
-| reuse               |   4   |  0  | can still reuse regs, we just dont give the hint to the processor that we ARE reusing it |
-| wait barrier mask   |   6   |  3  | probably could also be 0 since the barriers for all prev instructions are 7 aka unset) |
-| read barrier index  |   3   |  7  | unset/not making a barrier  |
-| write barrier index |   3   |  7  | unset/not making a barrier  |
-| yield flag          |   1   |  0  | dont yield (in combination with a high stall this seems to kinda say "take as long as it takes")
-| stall cycles        |   4   |  F  | take as long as it takes    |
-```
-
-
-## link dump
-- [website with SM90a ISA         ]( https://kuterdinel.com/nv_isa/ )
-- [SASS control code viewer       ]( https://kuterdinel.com/nvidia-sass-control-code-viewer.html )
-- [SASS control code explanation  ]( https://github.com/NervanaSystems/maxas/wiki/Control-Codes )
-- [Turning/Ampere assembler       ]( https://github.com/daadaada/turingas/tree/master )
-- [Volta architecture pdf         ]( https://arxiv.org/pdf/1804.06826 )
-- [Ampere architecture pdf        ]( https://arxiv.org/pdf/2208.11174 )
-- [Ampere architecture talk       ]( https://www.nvidia.com/en-us/on-demand/session/gtcspring21-s33322/ )
-- [above link pdf (no signin req) ]( https://cfvod.kaltura.com/api_v3/index.php/service/attachment_attachmentAsset/action/serve/attachmentAssetId/1_ezjj6bp9/ks/djJ8MjkzNTc3MXzsRYu5cyOvZOPrEK0zuiSWMgkhZRcJ8ZojnzQVpbbToju32ezHgp_cvJof00nEyQtYn_RtY3cHjAEAorx2_fKdnalKRg112fj0a6jK53tZhB-Gn1VtTpt7sPj-iRSoSUNDjcpWwaaRrodrgfxAR2dUOT9gmEUFvq0Hx2ECrYhFCT6vwGmRMvN4nUjWX2OBp74EkAxM8worwHEaqsQCi-zl )
-- [PTX ISA                        ]( https://docs.nvidia.com/cuda/parallel-thread-execution/ )
-- [pdf with Volta encoding info   ]( https://www.cse.ust.hk/~weiwa/papers/yan-ppopp20.pdf )
-- [DocumentSASS (nvdisasm strings)]( https://github.com/0xD0GF00D/DocumentSASS )
-- [the Martins of nvidia forums   ]( https://forums.developer.nvidia.com/u/njuffa/summary )
-- [Casey's Cuda/Tensor Core video ]( https://www.youtube.com/watch?v=uBtuMsAY7J8 )
+all of these use negated True (!P7) for the second carry in, but P0 aka False aka 0 should work as well - still have to test to make sure that what's going on here is 2 carry ins and outs
 
