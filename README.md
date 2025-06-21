@@ -114,5 +114,3 @@ The numbers next to the IADD3 instructions are in order:
 - second carry out predicate
 - second carry in predicate (optionally negated)
 
-all of these use negated True (!P7) for the second carry in, but P0 aka False aka 0 should work as well - still have to test to make sure that what's going on here is 2 carry ins and outs
-
